@@ -75,17 +75,15 @@ adduserandpass() { \
 	unset pass1 pass2 ;}
 
 gitmakeinstall() {
-	dir=$(mktemp -d)
+	#$(mktemp -d)
+	dir=/home/go/data/code
 	dialog --title "LARBS Installation" --infobox "Installing \`$(basename $1)\` ($n of $total) via \`git\` and \`make\`. $(basename $1) $2." 5 70
-	git clone --depth 1 "$1" "$dir" &>/dev/null
 	cd "$dir" || exit
-	make &>/dev/null
-	make install &>/dev/null
-	cd /tmp ;}
+    git clone --depth 1 "$1" $dir/$(basename $1);}
 
 maininstall() { # Installs all needed programs from main repo.
 	dialog --title "LARBS Installation" --infobox "Installing \`$1\` ($n of $total). $1 $2." 5 70
-	pacman --noconfirm --needed -S "$1" &>/dev/null
+	sudo pacman --noconfirm --needed -S "$1" &>/dev/null
 	}
 
 aurinstall() { \
@@ -95,7 +93,8 @@ aurinstall() { \
 	}
 
 installationloop() { \
-	([ -f "$progsfile" ] && cp "$progsfile" /tmp/progs.csv) || curl -Ls "$progsfile" > /tmp/progs.csv
+	# ([ -f "$progsfile" ] && cp "$progsfile" /tmp/progs.csv) || curl -Ls "$progsfile" > /tmp/progs.csv
+    cp progs.csv /tmp/progs.csv
 	total=$(wc -l < /tmp/progs.csv)
 	aurinstalled=$(pacman -Qm | awk '{print $1}')
 	while IFS=, read -r tag program comment; do
@@ -134,6 +133,22 @@ resetpulse() { dialog --infobox "Reseting Pulseaudio..." 4 50
 	killall pulseaudio
 	sudo -n "$name" pulseaudio --start ;}
 
+preinstall() {
+	mkdir -p $HOME/data/code
+}
+
+postinstall() {
+	sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+	sudo chsh -s /bin/zsh go
+	# Link dotfiles
+	ln -s /home/go/data/Configs/dotfiles/zshrc /home/go/.zshrc
+	ln -s /home/go/data/Configs/dotfiles/vimrc /home/go/.vimrc
+	ln -s /home/go/data/Configs/dotfiles/tmux.conf /home/go/.tmux.conf
+	cd /tmp
+	curl https://raw.githubusercontent.com/Shougo/neobundle.vim/master/bin/install.sh > install.sh
+	sh ./install.sh
+}
+
 manualinstall() { # Installs $1 manually if not installed. Used only for AUR helper here.
 	[[ -f /usr/bin/$1 ]] || (
 	dialog --infobox "Installing \"$1\", an AUR helper..." 8 50
@@ -157,24 +172,31 @@ finalize(){ \
 ### This is how everything happens in an intuitive format and order.
 ###
 
+### TODO: 
+### 	* Import gpg and ssh keys
+###	* offline imap crontab 
+###	* setup zsh
+###     * setup rcs
+
 # Check if user is root on Arch distro. Install dialog.
-initialcheck
+# initialcheck
 
 # Welcome user.
 welcomemsg || { clear; exit; }
 
 # Get and verify username and password.
-getuserandpass
+# getuserandpass
 
 # Give warning if user already exists.
-usercheck || { clear; exit; }
+# usercheck || { clear; exit; }
 
 # Last chance for user to back out before install.
 preinstallmsg || { clear; exit; }
+preinstall
 
 ### The rest of the script requires no user input.
 
-adduserandpass
+#adduserandpass
 
 # Refresh Arch keyrings.
 refreshkeys
@@ -201,7 +223,7 @@ putgitrepo "https://github.com/LukeSmithxyz/mozillarbs.git" "/home/$name/.mozill
 [[ -f /usr/bin/pulseaudio ]] && resetpulse
 
 # Enable services here.
-serviceinit NetworkManager cronie
+sudo serviceinit cronie
 
 # Most important command! Get rid of the beep!
 systembeepoff
@@ -216,3 +238,4 @@ sed -i "s/^#Color/Color/g" /etc/pacman.conf
 # Last message! Install complete!
 finalize
 clear
+postinstall
