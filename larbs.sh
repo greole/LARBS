@@ -32,16 +32,16 @@ esac done
 
 initialcheck() { pacman -S --noconfirm --needed dialog || { echo "Are you sure you're running this as the root user? Are you sure you're using an Arch-based distro? ;-) Are you sure you have an internet connection?"; exit; } ;}
 
-preinstallmsg() { \
-	dialog --title "Let's get this party started!" --yes-label "Let's go!" --no-label "No, nevermind!" --yesno "The rest of the installation will now be totally automated, so you can sit back and relax.\\n\\nIt will take some time, but when done, you can relax even more with your complete system.\\n\\nNow just press <Let's go!> and the system will begin installation!" 13 60 || { clear; exit; }
-	}
+# preinstallmsg() { \
+# 	dialog --title "Let's get this party started!" --yes-label "Let's go!" --no-label "No, nevermind!" --yesno "The rest of the installation will now be totally automated, so you can sit back and relax.\\n\\nIt will take some time, but when done, you can relax even more with your complete system.\\n\\nNow just press <Let's go!> and the system will begin installation!" 13 60 || { clear; exit; }
+# 	}
 
-welcomemsg() { \
-	dialog --title "Welcome!" --msgbox "Welcome to Luke's Auto-Rice Bootstrapping Script!\\n\\nThis script will automatically install a fully-featured i3wm Arch Linux desktop, which I use as my main machine.\\n\\n-Luke" 10 60
-	}
+# welcomemsg() { \
+# 	dialog --title "Welcome!" --msgbox "Welcome to Luke's Auto-Rice Bootstrapping Script!\\n\\nThis script will automatically install a fully-featured i3wm Arch Linux desktop, which I use as my main machine.\\n\\n-Luke" 10 60
+# 	}
 
 refreshkeys() { \
-	dialog --infobox "Refreshing Arch Keyring..." 4 40
+	echo "Refreshing Arch Keyring..." 4 40
 	pacman --noconfirm -Sy archlinux-keyring &>/dev/null
 	}
 
@@ -68,28 +68,38 @@ usercheck() { \
 
 adduserandpass() { \
 	# Adds user `$name` with password $pass1.
-	dialog --infobox "Adding user \"$name\"..." 4 50
+	echo "Adding user \"$name\"..." 4 50
 	useradd -m -g wheel -s /bin/bash "$name" &>/dev/null ||
 	usermod -a -G wheel "$name" && mkdir -p /home/"$name" && chown "$name":wheel /home/"$name"
 	echo "$name:$pass1" | chpasswd
 	unset pass1 pass2 ;}
 
-gitmakeinstall() {
+gitclone() {
 	#$(mktemp -d)
 	dir=/home/go/data/code
-	dialog --title "LARBS Installation" --infobox "Installing \`$(basename $1)\` ($n of $total) via \`git\` and \`make\`. $(basename $1) $2." 5 70
+	# dialog --title "LARBS Installation" --infobox "Installing \`$(basename $1)\` ($n of $total) via \`git\` and \`make\`. $(basename $1) $2." 5 70
 	cd "$dir" || exit
     git clone --depth 1 "$1" $dir/$(basename $1);}
 
+gitclonecmake() {
+	gitclone $1 $2
+    dir=/home/go/data/code/$(basename $1)
+    mkdir $dir/build
+    cd $dir/build
+    cmake .. $2
+    make
+    sudo make install;}
+
 maininstall() { # Installs all needed programs from main repo.
-	dialog --title "LARBS Installation" --infobox "Installing \`$1\` ($n of $total). $1 $2." 5 70
-	sudo pacman --noconfirm --needed -S "$1" &>/dev/null
+	# dialog --title "LARBS Installation" --infobox "Installing \`$1\` ($n of $total). $1 $2." 5 70
+	sudo pacman --noconfirm --needed -S "$1"
 	}
 
 aurinstall() { \
-	dialog --title "LARBS Installation" --infobox "Installing \`$1\` ($n of $total) from the AUR. $1 $2." 5 70
+	# dialog --title "LARBS Installation" --infobox "Installing \`$1\` ($n of $total) from the AUR. $1 $2." 5 70
+    echo "Installing $1"
 	grep "^$1$" <<< "$aurinstalled" && return
-	sudo -u $name $aurhelper -S --noconfirm "$1" &>/dev/null
+	sudo -u go yaourt -S --noconfirm "$1" 
 	}
 
 installationloop() { \
@@ -102,12 +112,13 @@ installationloop() { \
 	case "$tag" in
 	"") maininstall "$program" "$comment" ;;
 	"A") aurinstall "$program" "$comment" ;;
-	"G") gitmakeinstall "$program" "$comment" ;;
+	"G") gitclone "$program" "$comment" ;;
+	"GC") gitclonecmake "$program" "$comment" ;;
 	esac
 	done < /tmp/progs.csv ;}
 
 serviceinit() { for service in "$@"; do
-	dialog --infobox "Enabling \"$service\"..." 4 40
+	echo "Enabling \"$service\"..." 4 40
 	systemctl enable "$service"
 	systemctl start "$service"
 	done ;}
@@ -116,12 +127,12 @@ newperms() { # Set special sudoers settings for install (or after).
 	sed -i "/#LARBS/d" /etc/sudoers
 	echo -e "$@ #LARBS" >> /etc/sudoers ;}
 
-systembeepoff() { dialog --infobox "Getting rid of that retarded error beep sound..." 10 50
+systembeepoff() { echo "Getting rid of that retarded error beep sound..." 10 50
 	rmmod pcspkr
 	echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf ;}
 
 putgitrepo() { # Downlods a gitrepo $1 and places the files in $2 only overwriting conflicts
-	dialog --infobox "Downloading and installing config files..." 4 60
+	echo "Downloading and installing config files..." 4 60
 	dir=$(mktemp -d)
 	chown -R "$name":wheel "$dir"
 	sudo -u "$name" git clone --depth 1 "$1" "$dir"/gitrepo &>/dev/null &&
@@ -129,12 +140,14 @@ putgitrepo() { # Downlods a gitrepo $1 and places the files in $2 only overwriti
 	sudo -u "$name" cp -rT "$dir"/gitrepo "$2"
 	}
 
-resetpulse() { dialog --infobox "Reseting Pulseaudio..." 4 50
+resetpulse() { echo "Reseting Pulseaudio..." 4 50
 	killall pulseaudio
 	sudo -n "$name" pulseaudio --start ;}
 
 preinstall() {
 	mkdir -p $HOME/data/code
+    sudo sed -i "s/#en_GB.UTF-8/en_GB.UTF-8/g" /etc/locale.gen
+    sudo locale-gen
 }
 
 postinstall() {
@@ -151,7 +164,7 @@ postinstall() {
 
 manualinstall() { # Installs $1 manually if not installed. Used only for AUR helper here.
 	[[ -f /usr/bin/$1 ]] || (
-	dialog --infobox "Installing \"$1\", an AUR helper..." 8 50
+	echo "Installing \"$1\", an AUR helper..."
 	cd /tmp
 	rm -rf /tmp/"$1"*
 	curl -sO https://aur.archlinux.org/cgit/aur.git/snapshot/"$1".tar.gz &&
@@ -161,9 +174,9 @@ manualinstall() { # Installs $1 manually if not installed. Used only for AUR hel
 	cd /tmp) ;}
 
 finalize(){ \
-	dialog --infobox "Preparing welcome message..." 4 50
+	echo "Preparing welcome message..."
 	echo "exec_always --no-startup-id notify-send -i ~/.scripts/larbs.png '<b>Welcome to LARBS:</b> Press Super+F1 for the manual.' -t 10000"  >> /home/$name/.config/i3/config
-	dialog --title "All done!" --msgbox "Congrats! Provided there were no hidden errors, the script completed successfully and all the programs and configuration files should be in place.\\n\\nTo run the new graphical environment, log out and log back in as your new user, then run the command \"startx\" to start the graphical environment.\\n\\n-Luke" 12 80
+	# dialog --title "All done!" --msgbox "Congrats! Provided there were no hidden errors, the script completed successfully and all the programs and configuration files should be in place.\\n\\nTo run the new graphical environment, log out and log back in as your new user, then run the command \"startx\" to start the graphical environment.\\n\\n-Luke" 12 80
 	}
 
 ###
@@ -172,9 +185,9 @@ finalize(){ \
 ### This is how everything happens in an intuitive format and order.
 ###
 
-### TODO: 
+### TODO:
 ### 	* Import gpg and ssh keys
-###	* offline imap crontab 
+###	* offline imap crontab
 ###	* setup zsh
 ###     * setup rcs
 
@@ -182,7 +195,7 @@ finalize(){ \
 # initialcheck
 
 # Welcome user.
-welcomemsg || { clear; exit; }
+# welcomemsg || { clear; exit; }
 
 # Get and verify username and password.
 # getuserandpass
@@ -191,7 +204,7 @@ welcomemsg || { clear; exit; }
 # usercheck || { clear; exit; }
 
 # Last chance for user to back out before install.
-preinstallmsg || { clear; exit; }
+# preinstallmsg || { clear; exit; }
 preinstall
 
 ### The rest of the script requires no user input.

@@ -49,6 +49,7 @@ A,urlview,parses URLs in the terminal allowing keyboard-based selection
 ,zathura-pdf-mupdf,allows mupdf pdf compatibility in zathura
 G,https://github.com/alexanderjeurissen/ranger_devicons.git,gives folder and file icons in ranger
 A,task-spooler,queues commands or files for download
+A,valgrind,
 ,zsh,z-shell
 ,rofi,rofi menu
 ,poppler,manipulates .pdfs and gives .pdf previews in ranger
@@ -58,18 +59,57 @@ A,task-spooler,queues commands or files for download
 ,highlight,can highlight code output
 ,cmake,cmake
 ,gpgme,gpgme
+,openconnect,
+,opus,
+,cpio,
+G,https://github.com/cmus/cmus.git,
+,pulseaudio,
 G,https://github.com/neomutt/neomutt.git,neomutt email
 G,https://github.com/ipython/ipython,ipython
 G,https://github.com/honza/base16-st,base16
-G,https://github.com/CGAL/cgal,cgal
+GC,https://github.com/CGAL/cgal
 G,https://github.com/qutebrowser/qutebrowser.git,cute
 G,https://github.com/Kitware/ParaView.git,paraview
 G,git://git.suckless.org/st,st terminal
-G,https://github.com/signalapp/Signal-Desktop.git, Signal
+A,signal,
 G,https://git.llvm.org/git/llvm.git/, LLVM
-G,https://git.llvm.org/git/clang.git/, LLVM
-G,https://git.llvm.org/git/compiler-rt.git/, LLVM
-G,https://git.llvm.org/git/openmp.git/, LLVM
-G,https://git.llvm.org/git/libcxx.git/, LLVM
-G,https://git.llvm.org/git/libcxxabi.git/, LLVM
+GC,https://git.llvm.org/git/clang.git/, LLVM
+GC,https://git.llvm.org/git/compiler-rt.git/, LLVM
+GC,https://git.llvm.org/git/openmp.git/, LLVM
+GC,https://git.llvm.org/git/libcxx.git/, LLVM
+GC,https://git.llvm.org/git/libcxxabi.git/, LLVM
+G,https://github.com/qutebrowser/qutebrowser, qutebrowser
+
+,zsh,z-shell
+,rofi,rofi menu
+,poppler,manipulates .pdfs and gives .pdf previews in ranger
+,mediainfo,shows audio and video information and is used by ranger as well
+,atool,manages and gives information about archives
+,fzf,is a fuzzy finder tool
+,highlight,can highlight code output
+,cmake,cmake
+,gpgme,gpgme
+,openconnect,
+,opus,
+,cpio,
+G,https://github.com/cmus/cmus.git,
+,pulseaudio,
+G,https://github.com/neomutt/neomutt.git,neomutt email
+G,https://github.com/ipython/ipython,ipython
+G,https://github.com/honza/base16-st,base16
+GC,https://github.com/CGAL/cgal
+G,https://github.com/qutebrowser/qutebrowser.git,cute
+G,https://github.com/Kitware/ParaView.git,paraview
+G,git://git.suckless.org/st,st terminal
+A,signal,
+G,https://git.llvm.org/git/llvm.git/, LLVM
+GC,https://git.llvm.org/git/clang.git/, LLVM
+GC,https://git.llvm.org/git/compiler-rt.git/, LLVM
+GC,https://git.llvm.org/git/openmp.git/, LLVM
+GC,https://git.llvm.org/git/libcxx.git/, LLVM
+GC,https://git.llvm.org/git/libcxxabi.git/, LLVM
+G,https://github.com/qutebrowser/qutebrowser, qutebrowser
+,graphviz,
+A,ddd,
+,qcachegrind,
 
